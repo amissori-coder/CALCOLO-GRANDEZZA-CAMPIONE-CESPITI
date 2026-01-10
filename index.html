@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calcolo campionamento – Revilaw</title>
+  <style>
+    :root{
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: rgba(15, 23, 42, .10);
+      --shadow: 0 10px 30px rgba(15, 23, 42, .10);
+      --radius: 18px;
+      --radius-sm: 14px;
+      --primary: #0b4f7b;
+      --primary-2: #0a3f62;
+      --focus: rgba(11, 79, 123, .22);
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height: 100%; }
+
+    body{
+      margin: 0;
+      background: radial-gradient(1200px 800px at 10% -10%, rgba(11,79,123,.08), transparent 60%),
+                  radial-gradient(1000px 700px at 110% 0%, rgba(11,79,123,.06), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      line-height: 1.35;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .screen-only{ display: block; }
+    .print-only{ display: none; }
+
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.80);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar__inner{
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 240px;
+    }
+
+    .brand__logo{
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(15,23,42,.10);
+      object-fit: cover;
+      flex: 0 0 auto;
+    }
+
+    .brand__title{
+      font-size: clamp(20px, 2.6vw, 28px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    .brand__meta{
+      margin-top: 2px;
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: min(64vw, 520px);
+    }
+
+    .container{
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .card h2{
+      margin: 0 0 12px 0;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+
+    .grid{
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid--2{ grid-template-columns: 1fr; }
+    .grid--cards{ grid-template-columns: 1fr; }
+
+    @media (min-width: 760px){
+      .grid--2{ grid-template-columns: 1fr 1fr; }
+      .grid--cards{ grid-template-columns: 1fr 1fr; }
+      .card{ padding: 18px; }
+    }
+
+    .sectionSpacer{ height: 14px; }
+
+    .field label{
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: .01em;
+    }
+
+    .control{
+      width: 100%;
+      height: 50px;
+      padding: 12px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(15,23,42,.14);
+      background: #fff;
+      font-size: 17px;
+      outline: none;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+
+    select.control{ padding-right: 38px; }
+
+    .control:focus{
+      border-color: rgba(11,79,123,.55);
+      box-shadow: 0 0 0 4px var(--focus);
+    }
+
+    .hint{
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpis{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    @media (min-width: 520px){
+      .kpis{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .kpi{
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(15,23,42,.10);
+      background: linear-gradient(180deg, rgba(11,79,123,.06), rgba(11,79,123,0) 60%);
+      padding: 12px 12px;
+      min-height: 92px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi__label{
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--muted);
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    .kpi__value{
+      font-size: 28px;
+      font-weight: 950;
+      letter-spacing: -0.02em;
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi__sub{
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+
+    .btn{
+      appearance: none;
+      border: 1px solid rgba(15,23,42,.14);
+      background: #fff;
+      color: var(--text);
+      border-radius: 14px;
+      height: 48px;
+      padding: 0 14px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: transform .04s ease, box-shadow .15s ease, border-color .15s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active{ transform: translateY(1px); }
+
+    .btn--primary{
+      background: linear-gradient(180deg, var(--primary), var(--primary-2));
+      border-color: rgba(11,79,123,.35);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(11,79,123,.20);
+    }
+
+    .btn--primary:focus{
+      outline: none;
+      box-shadow: 0 0 0 4px var(--focus), 0 10px 20px rgba(11,79,123,.20);
+    }
+
+    .actions{
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    @media (min-width: 520px){
+      .actions{ width: auto; }
+    }
+
+    .footer{
+      max-width: 1040px;
+      margin: 10px auto 22px auto;
+      padding: 0 16px;
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* PRINT (una pagina, senza data) */
+    @media print{
+      @page { size: A4; margin: 12mm; }
+
+      body{ background: #fff !important; }
+
+      .screen-only{ display: none !important; }
+      .print-only{ display: block !important; }
+
+      /* Evita spezzature */
+      #printReport, .printHeader, .printTable, .printFooter{
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+
+    /* Print Report layout */
+    #printReport{
+      color: #0b1220;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    .printHeader{
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 10px;
+    }
+
+    .printLogo{
+      width: 58px;
+      height: 58px;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      object-fit: cover;
+      background: #fff;
+    }
+
+    .printTitle{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin: 0;
+      line-height: 1.15;
+    }
+
+    .printMeta{
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 14px;
+      font-size: 11px;
+      color: #111827;
+    }
+
+    .printMeta .k{
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .printTable{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .printTable th, .printTable td{
+      border: 1px solid #d1d5db;
+      padding: 6px 7px;
+      vertical-align: middle;
+    }
+
+    .printTable th{
+      background: #f3f4f6;
+      font-weight: 900;
+      color: #0f172a;
+      text-align: left;
+    }
+
+    .printTable td.num{ text-align: right; white-space: nowrap; }
+    .printTable td.cat{ font-weight: 900; }
+
+    .printFooter{
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 10px;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- SCREEN UI -->
+  <div class="topbar screen-only">
+    <div class="topbar__inner">
+      <div class="brand">
+        <img class="brand__logo" src="data:image/png;base64,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" alt="Revilaw" />
+        <div>
+          <div class="brand__title">Calcolo campionamento</div>
+          <div class="brand__meta" id="metaLine"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn--primary" id="btnPrint" type="button">Stampa PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="container screen-only">
+    <section class="card">
+      <h2>Dati incarico</h2>
+      <div class="grid grid--2">
+        <div class="field">
+          <label for="revisore">Revisore (Nome e Cognome)</label>
+          <input class="control" id="revisore" type="text" autocomplete="name" />
+        </div>
+
+        <div class="field">
+          <label for="societa">Società revisionata</label>
+          <input class="control" id="societa" type="text" autocomplete="organization" />
+        </div>
+      </div>
+
+      <div class="sectionSpacer"></div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="materialita">Materialità pianificata di bilancio (€)</label>
+          <input class="control" id="materialita" type="text" inputmode="decimal" placeholder="0" />
+          <div class="hint" id="materialitaPreview">€ 0,00</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sectionSpacer"></div>
+
+    <div class="grid grid--cards">
+      <section class="card">
+        <h2>Immobilizzazioni immateriali</h2>
+
+        <div class="grid grid--2">
+          <div class="field">
+            <label for="rImma">R-FACTOR (C.L. 3.4.1 Ctrl)</label>
+            <select class="control" id="rImma">
+              <option value="0.7">0,7</option>
+              <option value="1" selected>1</option>
+              <option value="1.5">1,5</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="totImma">Totale netto fondo ammortamento (€)</label>
+            <input class="control" id="totImma" type="text" inputmode="decimal" placeholder="0" />
+            <div class="hint" id="totImmaPreview">€ 0,00</div>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="kpi__label">Intervallo di campionamento</div>
+            <div class="kpi__value" id="intImma">—</div>
+            <div class="kpi__sub">Materialità / R-FACTOR</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi__label">Grandezza campione</div>
+            <div class="kpi__value" id="nImmaCeil">—</div>
+            <div class="kpi__sub" id="nImmaRaw"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Immobilizzazioni materiali</h2>
+
+        <div class="grid grid--2">
+          <div class="field">
+            <label for="rMat">R-FACTOR (C.L. 3.4.1 Ctrl)</label>
+            <select class="control" id="rMat">
+              <option value="0.7">0,7</option>
+              <option value="1" selected>1</option>
+              <option value="1.5">1,5</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="totMat">Totale netto fondo ammortamento (€)</label>
+            <input class="control" id="totMat" type="text" inputmode="decimal" placeholder="0" />
+            <div class="hint" id="totMatPreview">€ 0,00</div>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="kpi__label">Intervallo di campionamento</div>
+            <div class="kpi__value" id="intMat">—</div>
+            <div class="kpi__sub">Materialità / R-FACTOR</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi__label">Grandezza campione</div>
+            <div class="kpi__value" id="nMatCeil">—</div>
+            <div class="kpi__sub" id="nMatRaw"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer screen-only">
+    <span>© Revilaw S.p.A. — Tutti i diritti riservati</span>
+  </footer>
+
+  <!-- PRINT REPORT (1 pagina) -->
+  <div class="print-only" id="printReport" aria-hidden="true">
+    <div class="printHeader">
+      <img class="printLogo" src="data:image/png;base64,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" alt="Revilaw" />
+      <div>
+        <div class="printTitle">Calcolo campionamento</div>
+        <div class="printMeta">
+          <div><span class="k">Società:</span> <span id="pSocieta">—</span></div>
+          <div><span class="k">Revisore:</span> <span id="pRevisore">—</span></div>
+          <div><span class="k">Materialità pianificata:</span> <span id="pMaterialita">€ 0,00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <table class="printTable">
+      <thead>
+        <tr>
+          <th>Categoria</th>
+          <th class="num">R-FACTOR</th>
+          <th class="num">Totale netto (€)</th>
+          <th class="num">Intervallo (€)</th>
+          <th class="num">Campione (n)</th>
+          <th class="num">Campione arrotondato</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="cat">Immobilizzazioni immateriali</td>
+          <td class="num" id="pRImma">—</td>
+          <td class="num" id="pTotImma">—</td>
+          <td class="num" id="pIntImma">—</td>
+          <td class="num" id="pNImmaRaw">—</td>
+          <td class="num" id="pNImmaCeil">—</td>
+        </tr>
+        <tr>
+          <td class="cat">Immobilizzazioni materiali</td>
+          <td class="num" id="pRMat">—</td>
+          <td class="num" id="pTotMat">—</td>
+          <td class="num" id="pIntMat">—</td>
+          <td class="num" id="pNMatRaw">—</td>
+          <td class="num" id="pNMatCeil">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="printFooter">
+      <span>© Revilaw S.p.A. — Tutti i diritti riservati</span>
+          </div>
+  </div>
+
+  <script>
+    const eur = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+    const num2 = new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const int0 = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 0 });
+    const rFmt = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 });
+
+    function parseEuro(val){
+      if(val === null || val === undefined) return NaN;
+      let s = String(val).trim();
+      if(!s) return NaN;
+
+      // Remove euro symbol, spaces and keep only digits, separators and minus
+      s = s.replace(/[€\s]/g, '');
+      s = s.replace(/[^0-9,\.\-]/g, '');
+
+      const hasComma = s.includes(',');
+      const hasDot = s.includes('.');
+
+      const isThousandsSeparated = (sep) => {
+        const parts = s.split(sep);
+        if(parts.length <= 1) return false;
+        for(let i=1; i<parts.length; i++){
+          if(parts[i].length !== 3) return false;
+        }
+        return true;
+      };
+
+      if(hasComma && hasDot){
+        const lastComma = s.lastIndexOf(',');
+        const lastDot = s.lastIndexOf('.');
+        const decSep = lastComma > lastDot ? ',' : '.';
+
+        const parts = s.split(decSep);
+        const intPart = parts[0].replace(/[.,]/g,'');
+        const fracPart = parts.slice(1).join('').replace(/[.,]/g,'');
+        s = intPart + (fracPart ? '.' + fracPart : '');
+      } else if(hasComma && !hasDot){
+        if(isThousandsSeparated(',')){
+          s = s.replace(/,/g,'');
+        } else {
+          s = s.replace(/,/g,'.');
+        }
+      } else if(!hasComma && hasDot){
+        if(isThousandsSeparated('.')){
+          s = s.replace(/\./g,'');
+        }
+      }
+
+      const n = Number.parseFloat(s);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function setMoneyPreview(inputId, previewId){
+      const v = parseEuro(document.getElementById(inputId).value);
+      document.getElementById(previewId).textContent = eur.format(Number.isFinite(v) ? v : 0);
+    }
+
+    function calc(mat, r, tot){
+      const interval = (Number.isFinite(mat) && Number.isFinite(r) && r > 0) ? (mat / r) : NaN;
+      const nRaw = (Number.isFinite(interval) && interval > 0 && Number.isFinite(tot)) ? (tot / interval) : NaN;
+      const nCeil = (Number.isFinite(nRaw) && nRaw > 0) ? Math.ceil(nRaw) : NaN;
+      return { interval, nRaw, nCeil };
+    }
+
+    function updateMeta(){
+      const revisore = document.getElementById('revisore').value.trim();
+      const societa = document.getElementById('societa').value.trim();
+
+      const parts = [];
+      if(societa) parts.push(societa);
+      if(revisore) parts.push(revisore);
+
+      document.getElementById('metaLine').textContent = parts.join(' • ');
+    }
+
+    function updateScreen(intervalElId, nCeilElId, nRawElId, values){
+      const intervalEl = document.getElementById(intervalElId);
+      const nCeilEl = document.getElementById(nCeilElId);
+      const nRawEl = document.getElementById(nRawElId);
+
+      if(Number.isFinite(values.interval) && values.interval > 0){
+        intervalEl.textContent = eur.format(values.interval);
+      } else {
+        intervalEl.textContent = '—';
+      }
+
+      if(Number.isFinite(values.nRaw) && values.nRaw > 0){
+        nCeilEl.textContent = int0.format(values.nCeil);
+        nRawEl.textContent = 'Valore calcolato: ' + num2.format(values.nRaw);
+      } else {
+        nCeilEl.textContent = '—';
+        nRawEl.textContent = '';
+      }
+    }
+
+    function textOrDash(s){ return (s && String(s).trim()) ? String(s).trim() : '—'; }
+
+    function updatePrintRow(prefix, r, tot, values){
+      document.getElementById('pR' + prefix).textContent = Number.isFinite(r) ? rFmt.format(r) : '—';
+      document.getElementById('pTot' + prefix).textContent = Number.isFinite(tot) ? eur.format(tot) : '—';
+      document.getElementById('pInt' + prefix).textContent = (Number.isFinite(values.interval) && values.interval > 0) ? eur.format(values.interval) : '—';
+      document.getElementById('pN' + prefix + 'Raw').textContent = (Number.isFinite(values.nRaw) && values.nRaw > 0) ? num2.format(values.nRaw) : '—';
+      document.getElementById('pN' + prefix + 'Ceil').textContent = (Number.isFinite(values.nCeil) && values.nCeil > 0) ? int0.format(values.nCeil) : '—';
+    }
+
+    function updateAll(){
+      // Previews (screen)
+      setMoneyPreview('materialita', 'materialitaPreview');
+      setMoneyPreview('totImma', 'totImmaPreview');
+      setMoneyPreview('totMat', 'totMatPreview');
+
+      const mat = parseEuro(document.getElementById('materialita').value);
+      const rImma = Number.parseFloat(document.getElementById('rImma').value);
+      const rMat = Number.parseFloat(document.getElementById('rMat').value);
+      const totImma = parseEuro(document.getElementById('totImma').value);
+      const totMat = parseEuro(document.getElementById('totMat').value);
+
+      const imma = calc(mat, rImma, totImma);
+      const mate = calc(mat, rMat, totMat);
+
+      // Screen KPIs
+      updateScreen('intImma', 'nImmaCeil', 'nImmaRaw', imma);
+      updateScreen('intMat', 'nMatCeil', 'nMatRaw', mate);
+
+      // Header meta (no date)
+      updateMeta();
+
+      // Print report
+      document.getElementById('pSocieta').textContent = textOrDash(document.getElementById('societa').value);
+      document.getElementById('pRevisore').textContent = textOrDash(document.getElementById('revisore').value);
+      document.getElementById('pMaterialita').textContent = Number.isFinite(mat) ? eur.format(mat) : '—';
+
+      updatePrintRow('Imma', rImma, totImma, imma);
+      updatePrintRow('Mat', rMat, totMat, mate);
+    }
+
+    const watched = ['revisore','societa','materialita','rImma','totImma','rMat','totMat'];
+    watched.forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', updateAll);
+      el.addEventListener('change', updateAll);
+    });
+
+    document.getElementById('btnPrint').addEventListener('click', () => window.print());
+
+    updateAll();
+  </script>
+</body>
+</html>
